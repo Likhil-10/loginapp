@@ -1,70 +1,79 @@
-import React, { useState, useEffect } from 'react';
-import {Link, useNavigate } from 'react-router-dom';
+import React, { Component } from 'react';
 import './index.css';
+// import Cookies from 'js-cookie';
 
-function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const navigate = useNavigate();
+class LoginPage extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      email: '',
+      password: ''
+    };
+  }
 
-  useEffect(() => {
-    console.log(isLoggedIn);
-  }, [isLoggedIn]);
+  handleEmailChange = (event) => {
+    this.setState({ email: event.target.value });
+  }
 
-  const handleSubmit = async (event) => {
+  handlePasswordChange = (event) => {
+    this.setState({ password: event.target.value });
+  }
+
+  onLoginSuccess = () => {
+    const {history} = this.props
+    history.replace("/home")
+  }
+
+  handleSubmit = async (event) => {
     event.preventDefault();
-    const userDetails = { email, password };
-    const url = 'http://localhost:8080/auth/authenticate';
+    const { email, password } = this.state;
+    const userDetails = {
+      email: email,
+      password: password,
+    };
+    const url = 'http://localhost:8080/auth/authenticate'
     const options = {
       method: 'POST',
       body: JSON.stringify(userDetails),
-      headers: { 'Content-Type': 'application/json' },
-    };
-    try {
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Network response was not ok: ${response.status} ${errorText}`);
-      }
-      const data = await response.json();
-      console.log(data.token);
-      localStorage.setItem('token', data.token);
-      setIsLoggedIn(true);
-      navigate('/home');
-    } catch (error) {
-      console.error('There was a problem with the fetch operation:', error);
+      headers: {'Content-Type': 'application/json'},
     }
-  };
-  
+    const response = await fetch(url, options);
+    const data = await response.json();
 
-  return (
-    <div className="login-container">
-      <form className="form-container" onSubmit={handleSubmit}>
-        <h2>Login Page</h2>
-        <div className="form-group">
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Login</button>
-        <p>Don't have an account? <Link to="/register">Register</Link></p>
-      </form>
-    </div>
-  );
+    console.log(data.token);
+    if(response.ok === true) {
+      this.onLoginSuccess();
+    }
+  }
+
+  render() {
+    return (
+      <div className="login-container">
+        <form className="form-container" onSubmit={this.handleSubmit}>
+          <h2>Login Page</h2>
+          <div className="form-group">
+            <label>Email:</label>
+            <input
+              type="email"
+              value={this.state.email}
+              onChange={this.handleEmailChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Password:</label>
+            <input
+              type="password"
+              value={this.state.password}
+              onChange={this.handlePasswordChange}
+              required
+            />
+          </div>
+          <button type="submit">Login</button>
+        </form>
+      </div>
+    );
+  }
 }
 
 export default LoginPage;
